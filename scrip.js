@@ -8,284 +8,149 @@ import {
     where,
     doc,
     updateDoc,
-    increment,
-    orderBy,
-    limit
+    increment
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
-// ================================
-// ELEMENTS
-// ================================
-
-const productForm = document.getElementById("productForm");
-const productMessage = document.getElementById("productMessage");
-
-const productsTable = document.getElementById("prouctsTable");
-const salesTable = document.getElementById("salesTable");
-
-const totalProducts = document.getElementById("totalProducts");
-const totalStock = document.getElementById("totalStock");
-const totalSales = document.getElementById("totalSales");
-
-const refreshProducts = document.getElementById("refreshProducts");
-
-const scanResult = document.getElementById("scanResult");
-
-
-// ================================
-// COLLECTIONS
-// ================================
-
-const productsRef = collection(db, "prducts");
+const productsRef = collection(db, "products");
 const salesRef = collection(db, "sales");
 
+const result = document.getElementById("scanResult");
 
-// ================================
+
+// ===============================
 // ADD PRODUCT
-// ================================
+// ===============================
 
-productForm.addEventListener("submit", async (event) => {
+document
+    .getElementById("productForm")
+    .addEvntListener("submit", async (e) => {
 
-    event.preventDefault();
+        e.preventDefault();
 
-    const name = document.getElementById("productName").value.trim();
-    const barcode = document.getElementById("barcode").value.trim();
-    const price = Number(document.getElementById("price").value);
-    const stock = Number(document.getElementById("stock").value);
-    constcategory = document.getElementById("category").value.trim();
+        const name =
+            document.getElementById("productName").value.trim();
 
+        const barcode =
+            document.getElementById("barcode").value.trim();
 
-    if (!name || !barcode || !category) {
+        const price =
+            Number(document.getElementById("price").value);
 
-        productMessage.innerHTML =
-            "⚠️ Tafadhali jaza taarifa zote.";
+        const stock =
+            Number(document.getElementById("stock").value);
 
-        return;
-    }
+        const category =
+            document.getElementById("category").value.trim();
 
-
-    if (price < 0 || stock < 0) {
-
-        productMessage.innerHTML =
-            "⚠️ Bei na stock haviwezi kuwa chini ya sifuri.";
-
-        return;
-    }
+        const mssage =
+            document.getElementById("productMessage");
 
 
-    try {
+        if (!name || !barcode || !category) {
 
-        // CHECK BARCODE
-
-        const barcodeQuery = query(
-            productsRef,
-            where("barcode", "==", barcoe)
-        );
-
-        const barcodeSnapshot =
-            await getDocs(barcodeQuery);
-
-
-        if (!barcodeSnapshot.empty) {
-
-            productMessage.innerHTML =
-                "⚠️ Barcode hii tayari ipo.";
+            message.textContent =
+                "⚠️ Jaza taarifa zote.";
 
             return;
         }
 
 
-        // SAVE PRODUCT
+        try {
 
-        await addDoc(productsRef, {
+            // Angalia kama barcode tayari ipo
 
-            name: name,
+            const q = query(
+                productsRef,
+                where("barcode", "==", barcode)
+            );
 
-            barcode: barcode,
-
-            price: price,
-
-            openingStock: stock,
-
-            stock: stock,
-
-            category: category,
-
-            sold: 0,
-
-           createdAt: new Date().toISOString()
-
-        });
+            const existing =
+                await getDocs(q);
 
 
-        productMessage.innerHTML =
-            "✅ Bidhaa imehifadhiwa kikamilifu.";
+            if (!existing.empty) {
 
+               message.textContent =
+                    "⚠️ Barcode hii tayari ipo.";
 
-        productForm.reset();
-
-
-        loadProducts();
-
-        loadDashboard();
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        productMessage.innerHTML =
-            "❌ Imeshindikana kuhifadhi bidhaa: " +
-            error.message;
-
-    }
-
-});
-
-
-// ================================
-// LOAD PRODUCTS
-// ================================
-
-async function loadProducts() {
-
-    try {
-
-        const snapshot =
-            await getDocs(productsRef);
-
-
-        productsTable.innerHTML = "";
-
-
-        if (snapshot.empty) {
-
-            productsTable.innerHTML = `
-                <tr>
-                    <td colspan="6">
-                        Hakuna bidhaa bado.
-                    </td>
-                </tr>
-            `;
-
-            return;
-        }
-
-
-        snapshot.forEach((item) => {
-
-            const product = item.data();
-
-
-            let tatus = "Ipo";
-
-
-            if (product.stock === 0) {
-
-                status = "❌ Imeisha";
-
-            } else if (product.stock <= 5) {
-
-                status = "⚠️ Karibu kuisha";
-
+                return;
             }
 
 
-            const row =
-                document.createElement("tr");
+            // Hifadhi bidhaa
+
+            await addDoc(productsRef, {
+
+                name: name,
+
+                barcode: barcode,
+
+                price: price,
+
+                stock: stock,
+
+                openingStock: stock,
+
+                sold: 0,
+
+                category: category,
+
+                createdAt: Date.now()
+
+            });
 
 
-            row.innerHTML = `
+            message.textConent =
+                "✅ Bidhaa imehifadhiwa.";
 
-                <td>${product.name}</td>
+            e.target.reset();
 
-                <td>${product.barcode}</td>
+            loadProducts();
 
-                <td>
-                    TSh ${formatMoney(product.price)}
-                </td>
+            loadDashboard();
 
-                td>${product.stock}</td>
+        }
 
-                <td>${product.category}</td>
+        catch (error) {
 
-                <td>${status}</td>
+            console.error(error);
 
-            `;
+            message.textContent =
+                "❌ Imeshindikana: " +
+                error.message;
 
+        }
 
-            productsTable.appendChild(row);
-
-        });
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        productsTable.innerHTML = `
-            <tr>
-                <td colspan="6">
-                    ❌ Imeshindikana kupakia bidhaa.
-                </td>
-            </tr>
-        `;
-
-    }
-
-}
+    });
 
 
-// ================================
-// SCAN BARCODE
 // ===============================
-
-function onScanSuccess(decodedText) {
-
-    findProduct(decodedText);
-
-}
-
-
-function onScanFailure(error) {
-
-    // Scanner inaendelea kutafuta barcode.
-}
-
-
-// ================================
 // FIND PRODUCT
-// ================================
+// ===============================
 
 async function findProduct(barcode) {
 
-    scanResult.innerHTML =
-        "<p>⏳ Inatafuta bidhaa...</p>";
+    result.innerHTML =
+        "<p>⏳ Inatafuta bdhaa...</p>";
 
 
     try {
 
-        const productQuery =
-            query(
-                productsRef,
-                where("barcode", "==", barcode)
-           );
+        const q = query(
+            productsRef,
+            where("barcode", "==", barcode)
+        );
 
 
         const snapshot =
-            await getDocs(productQuery);
+            await getDocs(q);
 
 
         if (snapshot.empty) {
 
-            scanResult.innerHTML = `
-                <h3>❌ Bidhaa haijapatikana</h3>
-
-                <p>
-                    Barcode:
-                    <strong>${barcode}</strong>
-                </p>
+            result.innerHTML = `
+                <h3>❌ Bidhaa haipo</h3>
+                <p>Barcode: ${barcode}</p>
             `;
 
             return;
@@ -295,54 +160,45 @@ async function findProduct(barcode) {
         const productDoc =
             snapshot.docs[0];
 
-
         const product =
             productDoc.data();
 
 
-        if (product.stock <=0) {
+       if (product.stock <= 0) {
 
-            scanResult.innerHTML = `
-
-                <h3>⚠️ Bidhaa imeisha</h3>
+            result.innerHTML = `
+                <h3>❌ Bidhaa imeisha</h3>
 
                 <p>
                     <strong>${product.name}</strong>
                 </p>
 
-                <p>
-                    Stock: 0
-                </p>
-
+                <p>Stock: 0</p>
             `;
 
             return;
         }
 
 
-        // REDUCE STOCK
+        // PUNGUZA STOCK
 
-        const productDocument =
+        await updateDoc(
             doc(
                 db,
                 "products",
                 productDoc.id
-            );
-
-
-        await updateDoc(
-            roductDocument,
+            ),
             {
 
                 stock: increment(-1),
 
-                sold: increment(1)
+                old: increment(1)
 
             }
         );
 
 
-        // RECORD SALE
+        // HIFADHI MAUZO
 
         await addDoc(
             salesRef,
@@ -360,18 +216,18 @@ async function findProduct(barcode) {
                 price:
                     product.price,
 
-                saleDate:
-                   new Date().toISOString()
+                date:
+                    Date.now()
 
             }
         );
 
 
-        const newStock =
-            product.stock - 1;
+        const remaining =
+            product.sock - 1;
 
 
-        scanResult.innerHTML = `
+        result.innerHTML = `
 
             <h3>✅ Mauzo yamehifadhiwa</h3>
 
@@ -381,36 +237,30 @@ async function findProduct(barcode) {
 
             <p>
                 Bei:
-                TSh ${formatMoney(product.price)}
+                TSh ${money(product.price)}
             </p>
 
             <p>
                 Stock iliyobaki:
-                <strong>${newStock}</strong>
+                <strong>${remaining}</strong>
             </p>
 
         `;
 
 
-       loadProducts();
+        loadProducts();
 
         loadDashboard();
 
-        loadSales();
+    }
 
-
-    } catch (error) {
+    catch (error) {
 
         console.error(error);
 
-        scanResult.innerHTML = `
-
-            <h3>❌ Error</h3>
-
-            <p>
-                ${error.message}
-            </p>
-
+       result.innerHTML = `
+            <h3>⚠️ Error</h3>
+            <p>${error.message}</p>
         `;
 
     }
@@ -418,36 +268,103 @@ async function findProduct(barcode) {
 }
 
 
-// ================================
-// LOAD SALES
-// ================================
+// ===============================
+// BARCODE SCANNER
+// ===============================
 
-async function loadSales() {
+function startScanner() {
+
+    const scanner =
+        new Html5Qrcode("reader");
+
+
+    const config = {
+
+        fps: 10,
+
+        qrbox: {
+            width: 300,
+            height: 150
+        },
+
+        aspectRatio: 1.777778
+
+    };
+
+
+    scanner.start(
+
+        {
+            facingMode: "environment
+        },
+
+        config,
+
+        (decodedText) => {
+
+            scanner.stop()
+                .then(() => {
+
+                    findProduct(decodedText);
+
+                    setTimeout(() => {
+                        startScanner();
+                    }, 2500);
+
+                });
+
+        },
+
+        () => {
+
+            // scanner inaendelea kusoma
+
+        }
+
+    )
+    .catch((error) => {
+
+        console.error(error);
+
+        result.innerHTML = `
+            <h3>⚠️ Camera haikufunguka</h3
+
+            <p>
+                Ruhusu camera kwenye browser
+                kisha refresh ukurasa.
+            </p>
+        `;
+
+    });
+
+}
+
+
+// ===============================
+// LOAD PRODUCTS
+// ===============================
+
+async function loadProducts() {
+
+    const table =
+        document.getElementById("productsTable");
+
 
     try {
 
-        const salesQuery =
-             query(
-                salesRef,
-                orderBy("saleDate", "desc"),
-                limit(50)
-            );
-
-
-
         const snapshot =
-            await getDocs(salesQuery);
+            await getDocs(productsRef);
 
 
-        salesTable.innerHTML = "";
+        table.innerHTML = "";
 
 
         if (snapshot.empty) {
 
-            salesTable.innerHTML = `
-                <tr>
-                    <td colspan="4">
-                        Hakuna mauzo bado.
+            table.innerHTML = `
+               <tr>
+                    <td colspan="6">
+                        Hakuna bidhaa bado.
                     </td>
                 </tr>
             `;
@@ -458,201 +375,93 @@ async function loadSales() {
 
         snapshot.forEach((item) => {
 
-            const sale = item.data();
+            const p =
+                item.data();
 
 
-           const date =
-                new Date(
-                    sale.saleDate
-                );
+            let status = "Ipo";
 
 
-            const row =
-                document.createElement("tr");
+            if (p.stock === 0) {
 
+                status = "❌ Imeisha";
 
-            row.innerHTML = `
+            }
 
-                <td>
-                    ${sale.productName}
-                </td>
+            else if (p.stock <= 5) {
 
-                <td>
-                    ${sale.barcode}
-                </td>
+                status = "⚠️ Karibu kuisha";
 
-                <td>
-                    TSh ${formatMoney(sale.price)}
-                </td>
+            }
 
-                <td>
-                    ${date.toocaleString("sw-TZ")}
-                </td>
+            table.innerHTML += `
+
+                <tr>
+
+                    <td>${p.name}</td>
+
+                    <td>${p.barcode}</td>
+
+                    <td>
+                        TSh ${money(p.price)}
+                    </td>
+
+                    <td>${p.stock}</td>
+
+                    <td>${p.category}</td>
+
+                    <td>${status}</td>
+
+                </tr>
 
             `;
 
-
-            salesTable.appendChild(row);
-
         });
 
+    }
 
-    } catch (error) {
+    catch (error) {
 
         console.error(error);
-
-        salesTable.innerHTML = `
-            <tr>
-                <td colspan="4">
-                    ❌ Imeshindikana kupakia mauzo.
-                </td>
-            </tr>
-        `;
 
     }
 
 }
 
 
-// ================================
+// ==============================
 // DASHBOARD
-// ================================
+// ===============================
 
 async function loadDashboard() {
 
     try {
 
-        const productsSnapshot =
+        const products =
             await getDocs(productsRef);
 
 
-        let productsCount = 0;
-
-        let stockCount = 0;
+        let stock = 0;
 
 
-        productsSnapshot.forEach((item) => {
+        products.forEach((item) => {
 
-            const product =
+            const p =
                 item.data();
 
-
-            productsCount++;
-
-            stockCount +=
-                Number(product.stock || 0);
+            stock +=
+                Number(p.stock || 0);
 
         });
 
 
-        totalProducts.textContent =
-            productsCount;
+        document.getElementById(
+            "totalProducts"
+        ).textContent =
+            products.size;
 
 
-        totalStock.textContent =
-            stockCount;
-
-
-        const salesSnapshot =
-           await getDocs(salesRef);
-
-
-        let salesAmount = 0;
-
-
-        salesSnapshot.forEach((item) => {
-
-            const sale =
-                item.data();
-
-
-            salesAmount +=
-                Number(sale.price || 0);
-
-        });
-
-
-        totalSales.textContent =
-            "TSh " +
-            formatMoney(salesAmount);
-
-
-    } catch (error) {
-
-        console.error(error);
-
-    }
-
-}
-
-
-// ================================
-// REFRESH
-// ================================
-
-refreshProducts.addEvntListener(
-    "click",
-    () => {
-
-        loadProducts();
-
-        loadDashboard();
-
-        loadSales();
-
-    }
-);
-
-
-// ================================
-// MONEY FORMAT
-// ================================
-
-function formatMoney(amount) {
-
-    return Number(amount).toLocaleString(
-        "en-TZ"
-    );
-
-}
-
-
-// ================================
-// START SCANNER
-// ================================
-
-const scanner =
-    new Html5QrcodeScanner(
-        "reader",
-        {
-
-            fps: 10,
-
-           qrbox: {
-                width: 300,
-                height: 150
-            },
-
-            rememberLastUsedCamera: true
-
-        },
-
-        false
-    );
-
-
-scanner.render(
-    onScanSuccess,
-    onScanFailure
-);
-
-
-// ================================
-// START APP
-// ================================
-
-loadProducts();
-
-loadDashboard();
-
-loadSales();
+        document.getElementById(
+           "totalStock"
+        ).textContent =
+            stock;
