@@ -9,37 +9,35 @@ body {
     color: #222;
 }
 
-/* HEADER */
-
-.topbar {
+header {
     background: #111827;
     color: white;
-    padding: 20px;
+    padding: 22px;
+    text-align: center;
 }
 
-.topbar h1 {
+header h1 {
     margin: 0;
-    font-size: 25px;
+    font-size: 28px;
 }
 
-.topbar p {
-    margin: 5px 0 0;
-    opacity: 0.8;
+header p {
+    margin: 8px 0 0;
+    opacity: 0.85;
 }
 
-/* MAIN */
-
-.container {
-    width: 95%;
+main {
+    width: 94%;
     max-width: 1100px;
     margin: 25px auto;
 }
+
 
 /* DASHBOARD */
 
 .dashboard {
     display: grid;
-    grid-template-columns: repeat(3, fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 15px;
     margin-bottom: 20px;
 }
@@ -47,92 +45,118 @@ body {
 .card {
     background: white;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 14px;
+    text-align: center;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-}
-
-.card span {
-    font-size: 25px;
 }
 
 .card h3 {
-    margin: 8px 0;
+    margin: 0 0 10px;
 }
 
 .card strong {
-    font-size: 24px;
+    font-size: 28px;
 }
 
-/* PANELS */
 
-.panel {
+/* BOX */
+
+.box {
     background: white;
     padding: 22px;
     margin-bottom: 20px;
-    border-radius: 12px;
+    border-radius: 14px;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
 }
 
-.panel h2 {
+.box h2 {
     margin-top: 0;
 }
+
 
 /* FORM */
 
 form {
     display: grid;
-    gap: 10px;
+    gap: 9px;
 }
 
 label {
     font-weight: bold;
-    margin-top: 5px;
 }
 
 input {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ccc;
+    border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 15px;
 }
 
+input:focus {
+    outline: none;
+    border-color: #111827;
+}
+
+
+/* BUTTONS */
+
 button {
-    padding: 11px 16px;
     border: none;
+    padding: 12px 18px;
     border-radius: 8px;
+    background: #111827;
+    color: white;
     cursor: pointer;
     font-size: 15px;
 }
 
-.primary-btn {
-    margin-top: 10px;
-    background: #111827;
-    color: white;
-}
-
-.primary-btn:hover {
+button:hover {
     opacity: 0.9;
 }
 
+form button {
+    margin-top: 10px;
+}
+
+
 /* SCANNER */
+
+#startScanner {
+    margin-bottom: 15px;
+}
 
 #reader {
     width: 100%;
-    max-width: 50px;
-    margin: 20px auto;
+    max-width: 500px;
+    margin: 15px auto;
 }
 
 #scanResult {
-    padding: 15px;
     margin-top: 15px;
+    padding: 15px;
+    border-radius: 10px;
     background: #f3f4f6;
-    border-radius: 8px;
 }
 
-.info {
-    color: #666;
+
+/* MANUAL BARCODE */
+
+.manual {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f3f4f6;
+    border-radius: 10px;
 }
+
+.manual h3 {
+    margin-top: 0;
+}
+
+.manual button {
+    margin-top: 10px;
+}
+
 
 /* TABLE */
 
@@ -158,22 +182,6 @@ th {
     background: #f3f4f6;
 }
 
-.section-title {
-    display: flex;
-    justify-content: space-betwen;
-    align-items: center;
-}
-
-#refreshProducts {
-    background: #e5e7eb;
-}
-
-/* MESSAGES */
-
-#productMessage {
-    margin-top: 12px;
-    font-weight: bold;
-}
 
 /* MOBILE */
 
@@ -183,16 +191,12 @@ th {
         grid-template-columns: 1fr;
     }
 
-    .container {
+    main {
         width: 92%;
     }
 
-    .panel {
-        padding: 16px;
-    }
-
-    .topbar {
-        padding: 16px;
+    header h1 {
+        font-size: 23px;
     }
 
 }
