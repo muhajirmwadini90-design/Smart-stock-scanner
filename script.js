@@ -6,132 +6,138 @@ import {
     getDocs,
     query,
     where,
-    doc,
     updateDoc,
+    doc,
     increment
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
 
 const productsRef = collection(db, "products");
 const salesRef = collection(db, "sales");
 
+const form = document.getElementById("productForm");
+const message = document.getElementById("productMessage");
 const result = document.getElementById("scanResult");
+
+
+// ===============================
+// FORMAT MONEY
+// ===============================
+
+function money(value) {
+    return Number(value || 0).toLocaleString("en-TZ");
+}
 
 
 // ===============================
 // ADD PRODUCT
 // ===============================
 
-document
-    .getElementById("productForm")
-    .addEvntListener("submit", async (e) => {
+form.addEventListener("submit", async (event) => {
 
-        e.preventDefault();
+    event.preventDefault();
 
-        const name =
-            document.getElementById("productName").value.trim();
+    const name =
+        document.getElementById("productName").value.trim();
 
-        const barcode =
-            document.getElementById("barcode").value.trim();
+    const barcode =
+        document.getElementById("barcode").value.trim();
 
-        const price =
-            Number(document.getElementById("price").value);
+    const price =
+        Number(document.getElementById("price").value);
 
-        const stock =
-            Number(document.getElementById("stock").value);
+    const stock =
+        Number(document.getElementById("stock").value);
 
-        const category =
-            document.getElementById("category").value.trim();
-
-        const mssage =
-            document.getElementById("productMessage");
+    const category =
+        document.getElementById("category").value.trim();
 
 
-        if (!name || !barcode || !category) {
+    if (!name || !barcode || !category) {
+        message.textContent = "⚠️ Jaza taarifa zote.";
+        return;
+    }
+
+
+    try {
+
+        // CHECK BARCODE
+
+        const q = query(
+            productsRef,
+            where("barcode", "==", barcode)
+        );
+
+        const existing = await getDocs(q);
+
+
+        if (!existing.empty) {
 
             message.textContent =
-                "⚠️ Jaza taarifa zote.";
+                "⚠️ Barcode hii tayari ipo.";
 
             return;
         }
 
 
-        try {
+        // SAVE PRODUCT
 
-            // Angalia kama barcode tayari ipo
+        await addDoc(productsRef, {
 
-            const q = query(
-                productsRef,
-                where("barcode", "==", barcode)
-            );
+            name: name,
+            barcode: barcode,
+            price: price,
+            stock: stock,
+            openingStock: stock,
+            sold: 0,
+            category: category,
+            createdAt: Date.now()
 
-            const existing =
-                await getDocs(q);
-
-
-            if (!existing.empty) {
-
-               message.textContent =
-                    "⚠️ Barcode hii tayari ipo.";
-
-                return;
-            }
+        });
 
 
-            // Hifadhi bidhaa
+        message.textContent =
+            "✅ Bidhaa imehifadhiwa.";
 
-            await addDoc(productsRef, {
+        form.reset();
 
-                name: name,
+        loadProducts();
+        loadDashboard();
 
-                barcode: barcode,
+    }
 
-                price: price,
+    catch (error) {
 
-                stock: stock,
+        console.error(error);
 
-                openingStock: stock,
+        message.textContent =
+            "❌ " + error.message;
 
-                sold: 0,
+    }
 
-                category: category,
-
-                createdAt: Date.now()
-
-            });
-
-
-            message.textConent =
-                "✅ Bidhaa imehifadhiwa.";
-
-            e.target.reset();
-
-            loadProducts();
-
-            loadDashboard();
-
-        }
-
-        catch (error) {
-
-            console.error(error);
-
-            message.textContent =
-                "❌ Imeshindikana: " +
-                error.message;
-
-        }
-
-    });
+});
 
 
 // ===============================
-// FIND PRODUCT
+// FIND / SELL PRODUCT
 // ===============================
 
-async function findProduct(barcode) {
+async function sellProduct(barcode) {
 
-    result.innerHTML =
-        "<p>⏳ Inatafuta bdhaa...</p>";
+    barcode = String(barcode).trim();
+
+
+    if (!barcode) {
+
+        result.textContent =
+            "⚠️ Barcode haijawekwa.";
+
+        return;
+    }
+
+
+    result.textContent =
+        "⏳ Inatafuta bidhaa...";
 
 
     try {
@@ -164,15 +170,13 @@ async function findProduct(barcode) {
             productDoc.data();
 
 
-       if (product.stock <= 0) {
+        // CHECK STOCK
+
+        if (Number(product.stock) <= 0) {
 
             result.innerHTML = `
                 <h3>❌ Bidhaa imeisha</h3>
-
-                <p>
-                    <strong>${product.name}</strong>
-                </p>
-
+                <p>${product.name}</p>
                 <p>Stock: 0</p>
             `;
 
@@ -180,7 +184,7 @@ async function findProduct(barcode) {
         }
 
 
-        // PUNGUZA STOCK
+        // REDUCE STOCK
 
         await updateDoc(
             doc(
@@ -189,68 +193,53 @@ async function findProduct(barcode) {
                 productDoc.id
             ),
             {
-
                 stock: increment(-1),
-
-                old: increment(1)
-
+                sold: increment(1)
             }
         );
 
 
-        // HIFADHI MAUZO
+        // SAVE SALE
 
         await addDoc(
             salesRef,
             {
-
-                productId:
-                    productDoc.id,
-
-                productName:
-                    product.name,
-
-                barcode:
-                    product.barcode,
-
-                price:
-                    product.price,
-
-                date:
-                    Date.now()
-
+                productId: productDoc.id,
+                productName: product.name,
+                barcode: product.barcode,
+                price: Number(product.price),
+                date: Date.now()
             }
         );
 
 
         const remaining =
-            product.sock - 1;
+            Number(product.stock) - 1;
 
 
         result.innerHTML = `
-
             <h3>✅ Mauzo yamehifadhiwa</h3>
 
             <p>
+                Bidhaa:
                 <strong>${product.name}</strong>
             </p>
 
             <p>
                 Bei:
-                TSh ${money(product.price)}
+                <strong>TSh ${money(product.price)}</strong>
             </p>
 
             <p>
                 Stock iliyobaki:
                 <strong>${remaining}</strong>
             </p>
-
         `;
 
 
         loadProducts();
-
         loadDashboard();
+        loadSales();
 
     }
 
@@ -258,9 +247,8 @@ async function findProduct(barcode) {
 
         console.error(error);
 
-       result.innerHTML = `
-            <h3>⚠️ Error</h3>
-            <p>${error.message}</p>
+        result.innerHTML = `
+            <p>❌ ${error.message}</p>
         `;
 
     }
@@ -269,79 +257,137 @@ async function findProduct(barcode) {
 
 
 // ===============================
-// BARCODE SCANNER
+// CAMERA BARCODE SCANNER
 // ===============================
 
-function startScanner() {
-
-    const scanner =
-        new Html5Qrcode("reader");
+let scanner = null;
+let scannerRunning = false;
 
 
-    const config = {
-
-        fps: 10,
-
-        qrbox: {
-            width: 300,
-            height: 150
-        },
-
-        aspectRatio: 1.777778
-
-    };
+document
+    .getElementById("startScanner")
+    .addEventListener("click", async () => {
 
 
-    scanner.start(
+        if (scannerRunning) {
+            return;
+        }
 
-        {
-            facingMode: "environment
-        },
 
-        config,
+        if (typeof Html5Qrcode === "undefined") {
 
-        (decodedText) => {
+            result.innerHTML = `
+                <p>
+                    ❌ Scanner library haijapakia.
+                    Refresh ukurasa.
+                </p>
+            `;
 
-            scanner.stop()
-                .then(() => {
+            return;
+        }
 
-                    findProduct(decodedText);
 
-                    setTimeout(() => {
-                        startScanner();
-                    }, 2500);
+        try {
 
-                });
+            scanner =
+                new Html5Qrcode("reader");
 
-        },
 
-        () => {
+            scannerRunning = true;
 
-            // scanner inaendelea kusoma
+
+            result.innerHTML =
+                "<p>📷 Inafungua camera...</p>";
+
+
+            await scanner.start(
+
+                {
+                    facingMode: "environment"
+                },
+
+                {
+                    fps: 10,
+
+                    qrbox: {
+                        width: 300,
+                        height: 150
+                    }
+                },
+
+                async (decodedText) => {
+
+                    await scanner.stop();
+
+                    scanner.clear();
+
+                    scannerRunning = false;
+
+                    await sellProduct(
+                        decodedText
+                    );
+
+                },
+
+                () => {
+
+                    // Inaendelea kuscan
+
+                }
+
+            );
+
+
+            result.innerHTML = `
+                <p>
+                    📷 Camera imefunguka.
+                    Elekeza kwenye barcode.
+                </p>
+            `;
 
         }
 
-    )
-    .catch((error) => {
+        catch (error) {
 
-        console.error(error);
+            console.error(error);
 
-        result.innerHTML = `
-            <h3>⚠️ Camera haikufunguka</h3
+            scannerRunning = false;
 
-            <p>
-                Ruhusu camera kwenye browser
-                kisha refresh ukurasa.
-            </p>
-        `;
+
+            result.innerHTML = `
+                <h3>❌ Camera haijafunguka</h3>
+
+                <p>
+                    Hakikisha umeipa website
+                    ruhusa ya kutumia camera.
+                </p>
+            `;
+
+        }
 
     });
 
-}
+
+// ===============================
+// MANUAL BARCODE
+// ===============================
+
+document
+    .getElementById("manualSearch")
+    .addEventListener("click", () => {
+
+        const barcode =
+            document
+                .getElementById("manualBarcode")
+                .value;
+
+        sellProduct(barcode);
+
+    });
 
 
 // ===============================
-// LOAD PRODUCTS
+// PRODUCTS TABLE
 // ===============================
 
 async function loadProducts() {
@@ -362,7 +408,7 @@ async function loadProducts() {
         if (snapshot.empty) {
 
             table.innerHTML = `
-               <tr>
+                <tr>
                     <td colspan="6">
                         Hakuna bidhaa bado.
                     </td>
@@ -379,20 +425,22 @@ async function loadProducts() {
                 item.data();
 
 
-            let status = "Ipo";
+            let status = "✅ Ipo";
 
 
-            if (p.stock === 0) {
+            if (Number(p.stock) === 0) {
 
                 status = "❌ Imeisha";
 
             }
 
-            else if (p.stock <= 5) {
+            else if (Number(p.stock) <= 5) {
 
-                status = "⚠️ Karibu kuisha";
+                status =
+                    "⚠️ Karibu kuisha";
 
             }
+
 
             table.innerHTML += `
 
@@ -429,7 +477,87 @@ async function loadProducts() {
 }
 
 
-// ==============================
+// ===============================
+// SALES TABLE
+// ===============================
+
+async function loadSales() {
+
+    const table =
+        document.getElementById("salesTable");
+
+
+    try {
+
+        const snapshot =
+            await getDocs(salesRef);
+
+
+        table.innerHTML = "";
+
+
+        if (snapshot.empty) {
+
+            table.innerHTML = `
+                <tr>
+                    <td colspan="4">
+                        Hakuna mauzo bado.
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+
+        snapshot.forEach((item) => {
+
+            const sale =
+                item.data();
+
+
+            const date =
+                new Date(sale.date);
+
+
+            table.innerHTML += `
+
+                <tr>
+
+                    <td>
+                        ${sale.productName}
+                    </td>
+
+                    <td>
+                        ${sale.barcode}
+                    </td>
+
+                    <td>
+                        TSh ${money(sale.price)}
+                    </td>
+
+                    <td>
+                        ${date.toLocaleString("sw-TZ")}
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+
+// ===============================
 // DASHBOARD
 // ===============================
 
@@ -462,6 +590,49 @@ async function loadDashboard() {
 
 
         document.getElementById(
-           "totalStock"
+            "totalStock"
         ).textContent =
             stock;
+
+
+        const sales =
+            await getDocs(salesRef);
+
+
+        let total = 0;
+
+
+        sales.forEach((item) => {
+
+            const sale =
+                item.data();
+
+            total +=
+                Number(sale.price || 0);
+
+        });
+
+
+        document.getElementById(
+            "totalSales"
+        ).textContent =
+            "TSh " + money(total);
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+
+// ===============================
+// START SYSTEM
+// ===============================
+
+loadProducts();
+loadSales();
+loadDashboard();
