@@ -910,3 +910,97 @@ async function generateReport() {
     }
 
 }
+// ===============================
+// SCAN BARCODE WHILE ADDING PRODUCT
+// ===============================
+
+let productBarcodeScanner = null;
+let productBarcodeScanning = false;
+
+document
+    .getElementById("scanProductBarcode")
+    .addEventListener("click", async () => {
+
+        const message =
+            document.getElementById(
+                "productBarcodeMessage"
+            );
+
+        if (productBarcodeScanning) {
+            return;
+        }
+
+        if (typeof Html5Qrcode === "undefined") {
+
+            message.textContent =
+                "❌ Scanner library haijapakia.";
+
+            return;
+        }
+
+        try {
+
+            productBarcodeScanner =
+                new Html5Qrcode(
+                    "productBarcodeScanner"
+                );
+
+            productBarcodeScanning = true;
+
+            message.textContent =
+                "📷 Elekeza camera kwenye barcode...";
+
+            await productBarcodeScanner.start(
+
+                {
+                    facingMode: "environment"
+                },
+
+                {
+                    fps: 10,
+
+                    qrbox: {
+                        width: 300,
+                        height: 150
+                    }
+                },
+
+                async (decodedText) => {
+
+                    document.getElementById(
+                        "barcode"
+                    ).value = decodedText;
+
+                    message.textContent =
+                        "✅ Barcode imesomwa: " +
+                        decodedText;
+
+                    await productBarcodeScanner.stop();
+
+                    productBarcodeScanner.clear();
+
+                    productBarcodeScanning =
+                        false;
+
+                },
+
+                () => {
+                    // Inaendelea kusoma
+                }
+
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            productBarcodeScanning = false;
+
+            message.textContent =
+                "❌ Camera haijafunguka. Ruhusu camera kwenye browser.";
+
+        }
+
+    });
