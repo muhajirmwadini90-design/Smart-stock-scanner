@@ -636,3 +636,277 @@ async function loadDashboard() {
 loadProducts();
 loadSales();
 loadDashboard();
+// ===============================
+// REPORTS
+// ===============================
+
+document
+    .getElementById("generateReport")
+    .addEventListener("click", generateReport);
+
+
+async function generateReport() {
+
+    const start =
+        document.getElementById("reportStart").value;
+
+    const end =
+        document.getElementById("reportEnd").value;
+
+    const report =
+        document.getElementById("reportResult");
+
+
+    if (!start || !end) {
+
+        report.innerHTML = `
+            <p>⚠️ Chagua tarehe ya kuanzia
+            na tarehe ya mwisho.</p>
+        `;
+
+        return;
+    }
+
+
+    if (start > end) {
+
+        report.innerHTML = `
+            <p>⚠️ Tarehe ya kuanzia
+            haiwezi kuwa baada ya tarehe ya mwisho.</p>
+        `;
+
+        return;
+    }
+
+
+    report.innerHTML =
+        "<p>⏳ Inatengeneza ripoti...</p>";
+
+
+    try {
+
+        const snapshot =
+            await getDocs(salesRef);
+
+
+        let totalSales = 0;
+
+        let numberOfSales = 0;
+
+        const productsSold = {};
+
+
+        snapshot.forEach((item) => {
+
+            const sale =
+                item.data();
+
+
+            const saleDate =
+                new Date(sale.date);
+
+
+            const year =
+                saleDate.getFullYear();
+
+            const month =
+                String(
+                    saleDate.getMonth() + 1
+                ).padStart(2, "0");
+
+            const day =
+                String(
+                    saleDate.getDate()
+                ).padStart(2, "0");
+
+
+            const saleDateString =
+                `${year}-${month}-${day}`;
+
+
+            // CHECK DATE RANGE
+
+            if (
+                saleDateString >= start &&
+                saleDateString <= end
+            ) {
+
+                const price =
+                    Number(sale.price || 0);
+
+
+                totalSales += price;
+
+                numberOfSales++;
+
+
+                // COUNT PRODUCTS
+
+                const name =
+                    sale.productName ||
+                    "Bidhaa";
+
+
+                if (!productsSold[name]) {
+
+                    productsSold[name] = 0;
+
+                }
+
+
+                productsSold[name]++;
+
+            }
+
+        });
+
+
+        // PRODUCT ROWS
+
+        let productRows = "";
+
+
+        const sortedProducts =
+            Object.entries(productsSold)
+                .sort((a, b) => b[1] - a[1]);
+
+
+        if (sortedProducts.length === 0) {
+
+            productRows = `
+                <tr>
+                    <td colspan="2">
+                        Hakuna mauzo katika kipindi hiki.
+                    </td>
+                </tr>
+            `;
+
+        }
+
+        else {
+
+            sortedProducts.forEach(
+                ([name, quantity]) => {
+
+                    productRows += `
+
+                        <tr>
+
+                            <td>
+                                ${name}
+                            </td>
+
+                            <td>
+                                ${quantity}
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            );
+
+        }
+
+
+        // DISPLAY REPORT
+
+        report.innerHTML = `
+
+            <h3>
+                📊 Ripoti ya ${start} hadi ${end}
+            </h3>
+
+
+            <div class="report-summary">
+
+                <div class="report-card">
+
+                    Mauzo
+
+                    <strong>
+                        TSh ${money(totalSales)}
+                    </strong>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    Idadi ya Mauzo
+
+                    <strong>
+                        ${numberOfSales}
+                    </strong>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    Bidhaa Zilizouzwa
+
+                    <strong>
+                        ${Object.keys(productsSold).length}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <h3>
+                Bidhaa Zilizouzwa
+            </h3>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Bidhaa
+                            </th>
+
+                            <th>
+                                Idadi
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        ${productRows}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        `;
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        report.innerHTML = `
+            <p>
+                ❌ Imeshindwa kutengeneza ripoti:
+                ${error.message}
+            </p>
+        `;
+
+    }
+
+}
