@@ -62,12 +62,26 @@
 
                 <label>Barcode</label>
 
-                <input
-                    id="barcode"
-                    type="text"
-                    placeholder="Mfano: 123456789"
-                    required
-                >
+<div class="barcode-input">
+
+    <input
+        id="barcode"
+        type="text"
+        placeholder="Andika barcode"
+        required
+    >
+
+    <button
+        type="button"
+        id="scanProductBarcode">
+        📷 Scan
+    </button>
+
+</div>
+
+<div id="productBarcodeScanner"></div>
+
+<p id="productBarcodeMessage"></p>
 
 
                 <label>Bei</label>
