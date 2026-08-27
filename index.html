@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Stock & Sales Scanner</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="topbar">
+        <div>
+            <h1>Smart Stock</h1>
+            <p>Stock & Sales Management</p>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- DASHBOARD -->
+        <section class="dashboard">
+
+            <iv class="card">
+                <span>📦</span>
+                <h3>Bidhaa</h3>
+                <strong id="totalProducts">0</strong>
+            </div>
+
+            <div class="card">
+                <span>📊</span>
+                <h3>Stock</h3>
+                <strong id="totalStock">0</strong>
+            </div>
+
+            <div class="card">
+                <span>💰</span>
+                <h3>Mauzo</h3>
+                <strong id="totalSales">TSh 0</strong>
+            </div>
+
+        </section>
+
+        <!-- ADD PRODUCT -->
+        <section class="panel">
+
+            <h2>➕ Ongeza Bidhaa</h2>
+
+            <form id="productForm">
+
+                <label>Jina la bidhaa</label>
+                <input
+                    type="text"
+                    id="productName"
+                    placeholder="Mfano: Coca Cola 500ml"
+                    required
+                >
+
+                <label>Barcode</label>
+                <input
+                    type="text"
+                    id="barcode"
+                   placeholder="Scan au andika barcode"
+                    required
+                >
+
+                <label>Bei ya kuuza</label>
+                <input
+                    type="number"
+                    id="price"
+                    placeholder="Mfano: 1000"
+                    min="0"
+                    required
+                >
+
+                <label>Stock ya mwanzo</label>
+                <input
+                    type="number"
+                    id="stock"
+                   placeholder="Mfano: 50"
+                    min="0"
+                    required
+                >
+
+                <label>Category</label>
+                <input
+                    type="text"
+                    id="category"
+                    placeholder="Mfano: Vinywaji"
+                    required
+                >
+
+                <button type="submit" class="primary-btn">
+                    Hifadhi Bidhaa
+                </button>
+
+            </form>
+
+            <div id="productMessage">/div>
+
+        </section>
+
+
+        <!-- SCANNER -->
+        <section class="panel">
+
+            <h2>📷 Scan Barcode</h2>
+
+            <p class="info">
+                Scan barcode ya bidhaa ili kurekodi mauzo.
+            </p>
+
+            <div id="reader"></div>
+
+            <div id="scanResult">
+                <p>Subiri scan...</p>
+            </div>
+
+        </section>
+
+
+        <!-- PRODUCTS -->
+        <section class="panel">
+
+            <div class="section-title">
+                <h2>📦 BidhaaZote</h2>
+
+                <button id="refreshProducts">
+                    Refresh
+                </button>
+            </div>
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Bidhaa</th>
+                            <th>Barcode</th>
+                            <th>Bei</th>
+                            <th>Stock</th>
+                            <th>Category</th>
+                            <th>Sttus</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="productsTable">
+
+                        <tr>
+                            <td colspan="6">
+                                Hakuna bidhaa bado.
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- SALES -->
+        <section class="panel">
+
+            <h2>💰 Mauzo ya Leo</h2>
+
+           <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Bidhaa</th>
+                            <th>Barcode</th>
+                            <th>Bei</th>
+                            <th>Tarehe</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="salesTable">
+
+                        <tr>
+                            <td colspan="4">
+                                Hakuna mazo bado.
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- BARCODE SCANNER -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <!-- OUR JAVASCRIPT -->
+    <script type="module" src="scrip.js"></script>
+
+</body>
+</html>
