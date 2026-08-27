@@ -243,3 +243,28 @@ th {
     }
 
 }
+/* PRODUCT BARCODE */
+
+.barcode-input {
+    display: flex;
+    gap: 8px;
+}
+
+.barcode-input input {
+    flex: 1;
+}
+
+.barcode-input button {
+    white-space: nowrap;
+}
+
+#productBarcodeScanner {
+    width: 100%;
+    max-width: 500px;
+    margin: 15px auto;
+}
+
+#productBarcodeMessage {
+    margin-top: 8px;
+}
+
