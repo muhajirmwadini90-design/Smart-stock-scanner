@@ -1004,3 +1004,90 @@ document
         }
 
     });
+// ===============================
+// DOWNLOAD REPORT
+// ===============================
+
+let latestReport = [];
+
+const downloadReport =
+    document.getElementById("downloadReport");
+
+
+downloadReport.addEventListener(
+    "click",
+    () => {
+
+        if (latestReport.length === 0) {
+
+            alert("⚠️ Tengeneza ripoti kwanza.");
+
+            return;
+        }
+
+
+        let csv =
+            "Bidhaa,Idadi Zilizouzwa,Mapato\n";
+
+
+        latestReport.forEach((item) => {
+
+            csv +=
+                `"${item.name}",${item.quantity},${item.revenue}\n`;
+
+        });
+
+
+        const totalQuantity =
+            latestReport.reduce(
+                (total, item) =>
+                    total + item.quantity,
+                0
+            );
+
+
+        const totalRevenue =
+            latestReport.reduce(
+                (total, item) =>
+                    total + item.revenue,
+                0
+            );
+
+
+        csv +=
+            `\n"JUMLA",${totalQuantity},${totalRevenue}\n`;
+
+
+        const blob =
+            new Blob(
+                [csv],
+                {
+                    type: "text/csv;charset=utf-8;"
+                }
+            );
+
+
+        const url =
+            URL.createObjectURL(blob);
+
+
+        const link =
+            document.createElement("a");
+
+
+        link.href = url;
+
+        link.download =
+            "ripoti-ya-biashara.csv";
+
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+
+    }
+);
